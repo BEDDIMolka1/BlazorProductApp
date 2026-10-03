@@ -16,9 +16,13 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetProducts()
+    public async Task<IActionResult> GetProducts([FromQuery] string? search)
     {
-        var products = await _productService.GetAll();
+        Console.WriteLine($"SEARCH BACKEND = '{search}'");
+
+        var products = await _productService.GetAll(search);
+
+        Console.WriteLine($"RESULT COUNT BACKEND = {products.Count}");
 
         return Ok(products);
     }

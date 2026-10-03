@@ -13,9 +13,22 @@ public class ProductService
         _context = context;
     }
 
-    public async Task<List<Product>> GetAll()
+    public async Task<List<Product>> GetAll(string? search = null)
     {
-        return await _context.Products.ToListAsync();
+        Console.WriteLine($"SEARCH SERVICE = '{search}'");
+
+        var query = _context.Products.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(p => p.Name.Contains(search));
+        }
+
+        var result = await query.ToListAsync();
+
+        Console.WriteLine($"RESULT COUNT SERVICE = {result.Count}");
+
+        return result;
     }
 
     public async Task<Product?> GetById(int id)

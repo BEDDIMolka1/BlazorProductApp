@@ -51,6 +51,7 @@
     }
     else
     {
+<p>Nombre de produits affichés : @(products?.Count ?? 0)</p>
         <table>
             <thead>
                 <tr>
@@ -117,13 +118,22 @@
     }
 
 
-    private async Task SearchProducts()
+ private async Task SearchProducts()
 {
     Console.WriteLine($"SEARCH = '{searchText}'");
 
-    products = await ProductService.GetAll(searchText);
+    var result = await ProductService.GetAll(searchText);
 
-    Console.WriteLine($"RESULT COUNT = {products.Count}");
+    Console.WriteLine($"RESULT COUNT = {result.Count}");
+
+    foreach (var product in result)
+    {
+        Console.WriteLine($"PRODUCT = {product.Name}");
+    }
+
+    products = result;
+
+    Console.WriteLine($"PRODUCTS DISPLAYED = {products.Count}");
 
     await InvokeAsync(StateHasChanged);
 }
