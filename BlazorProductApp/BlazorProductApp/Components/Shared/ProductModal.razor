@@ -1,0 +1,68 @@
+﻿@using BlazorProductApp.Models
+
+<div class="modal-overlay">
+    <div class="product-modal">
+
+        <h2>@(IsEditMode ? "Edit Product" : "Add Product")</h2>
+
+        <EditForm Model="Product" OnValidSubmit="HandleValidSubmit">
+
+            <DataAnnotationsValidator />
+
+            <ValidationSummary />
+
+            <div class="form-group">
+                <label>Name</label>
+
+                <InputText @bind-Value="Product.Name" />
+
+                <ValidationMessage For="@(() => Product.Name)" />
+            </div>
+
+            <div class="form-group">
+                <label>Price</label>
+
+                <InputNumber @bind-Value="Product.Price" />
+
+                <ValidationMessage For="@(() => Product.Price)" />
+            </div>
+
+            <div class="modal-buttons">
+
+                <button type="button"
+                        class="btn-cancel"
+                        @onclick="OnCancel">
+                    Cancel
+                </button>
+
+                <button type="submit"
+                        class="btn-save">
+                    @(IsEditMode ? "Save" : "Add")
+                </button>
+
+            </div>
+
+        </EditForm>
+
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public Product Product { get; set; } = new();
+
+    [Parameter]
+    public bool IsEditMode { get; set; }
+
+    [Parameter]
+    public EventCallback OnSave { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    private async Task HandleValidSubmit()
+    {
+        await OnSave.InvokeAsync();
+    }
+}

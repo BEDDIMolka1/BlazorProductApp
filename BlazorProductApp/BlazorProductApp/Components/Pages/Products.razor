@@ -1,0 +1,197 @@
+﻿@page "/products"
+@rendermode InteractiveServer
+
+@using BlazorProductApp.Models
+@using BlazorProductApp.Services
+@using BlazorProductApp.Components.Shared
+
+@inject ProductService ProductService
+
+<PageTitle>Products</PageTitle>
+
+<div class="products-page">
+
+    <div class="page-header">
+        <div>
+            <h1>Products</h1>
+            <p>Manage your products</p>
+        </div>
+
+        <button class="btn-primary" @onclick="OpenAddModal">
+            + Add Product
+        </button>
+    </div>
+
+    <div class="search-box">
+
+        <input type="text"
+               placeholder="Search product..."
+               @bind="searchText"
+               @bind:event="oninput" />
+
+        <button @onclick="SearchProducts">
+            Search
+        </button>
+
+        <button @onclick="ClearSearch">
+            Clear
+        </button>
+
+    </div>
+
+    <p>Recherche : @searchText</p>
+
+    @if (products == null)
+    {
+        <p>Loading...</p>
+    }
+    else if (products.Count == 0)
+    {
+        <p>No products found.</p>
+    }
+    else
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @foreach (var product in products)
+                {
+                    <tr>
+                        <td>@product.Name</td>
+
+                        <td>
+                            @product.Price.ToString("0.00") €
+                        </td>
+
+                        <td>
+                            <button @onclick="() => OpenEditModal(product)">
+                                Edit
+                            </button>
+
+                            <button @onclick="() => DeleteProduct(product.Id)">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+        </table>
+    }
+
+</div>
+
+@if (showModal)
+{
+    <ProductModal
+        Product="currentProduct"
+        IsEditMode="isEditMode"
+        OnSave="SaveProduct"
+        OnCancel="CloseModal" />
+}
+
+@code {
+
+    private List<Product>? products;
+
+    private Product currentProduct = new();
+
+    private bool showModal = false;
+
+    private bool isEditMode = false;
+
+    private string searchText = "";
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await ProductService.GetAll();
+    }
+
+
+    private async Task SearchProducts()
+{
+    Console.WriteLine($"SEARCH = '{searchText}'");
+
+    products = await ProductService.GetAll(searchText);
+
+    Console.WriteLine($"RESULT COUNT = {products.Count}");
+
+    await InvokeAsync(StateHasChanged);
+}
+    
+
+
+    private async Task ClearSearch()
+    {
+        searchText = "";
+
+        products = await ProductService.GetAll();
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+    private void OpenAddModal()
+    {
+        currentProduct = new Product();
+
+        isEditMode = false;
+
+        showModal = true;
+    }
+
+
+    private void OpenEditModal(Product product)
+    {
+        currentProduct = new Product
+        {
+            Id = product.Id,
+            Name = product.Name,
+            Price = product.Price
+        };
+
+        isEditMode = true;
+
+        showModal = true;
+    }
+
+
+    private void CloseModal()
+    {
+        showModal = false;
+    }
+
+
+    private async Task SaveProduct()
+    {
+        if (isEditMode)
+        {
+            await ProductService.Update(currentProduct);
+        }
+        else
+        {
+            await ProductService.Create(currentProduct);
+        }
+
+        products = await ProductService.GetAll();
+
+        CloseModal();
+    }
+
+
+    private async Task DeleteProduct(int id)
+    {
+        await ProductService.Delete(id);
+
+        products = await ProductService.GetAll();
+    }
+}
